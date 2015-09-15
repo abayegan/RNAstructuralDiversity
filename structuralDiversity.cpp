@@ -158,10 +158,22 @@ int main(int argc , char *argv[])
 	}
 	size_t found = string(seq).find('&');
 	if(found!=string::npos){
-		cout<<"point0000"<<endl;
-		cutPoint=found;
+		cutPoint=found+1;
 		for(int i=found+1;i<strlen(seq);i++)
 			seq[i-1] = seq[i];
+			n = n-1;
+	}
+	if(targetStrFlag){
+		if(targetStr[found]=='&'){
+			for(int i=found+1;i<n;i++)
+				targetStr[i-1] = targetStr[i];
+		}
+		else
+		{
+			printf("given sequence and structure are not compatible!\n");
+			usage(argv[0]);
+		}
+		printf("targetStr:%s",targetStr);
 	}
 	CheckSequence(seq);
 	printf("seq:%s\n",seq);
@@ -233,7 +245,7 @@ int main(int argc , char *argv[])
 	}
 	if (posEntFlag==1)
 		printPositionalEntropy(bpr,n,targetSeq,targetSeqFlag);
-	cout <<"last point"<<endl;
+
 	return 0;
 }
 
