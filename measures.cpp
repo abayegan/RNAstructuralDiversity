@@ -9,11 +9,9 @@ extern "C"{
 #include "fold_vars.h"
 #include "fold.h"
 #include "part_func.h"
-#include "RNAstruct.h"
-#include "read_epars.h"
+#include "RNAstruct.h" 
 #include "cofold.h"
 #include "part_func_co.h"
-//#include "data_structures.h"
 }
 
 using namespace std;
@@ -49,59 +47,36 @@ int * getBasePairs(char * str, int n)
 
 double ** BasePairProbabilities(char * seq , int n)
 {
-	char *struct1; /* the base pair brobability information in a psuedo dot bracket notation */
 	FLT_OR_DBL *bppm;
 	mfeStr = (char* )space(sizeof(char)*(n+1));
 	dangles = dangleFlag;
 	temperature = T;
-	//cout<<"point1"<<endl;
 	if(cutPoint==-1){
-		//cout<<"point2"<<endl;
-		//cout<<"temp "<<temperature<<endl;
-		//cout<<"d "<<dangles<<endl;
 		mfe = fold(seq,mfeStr);
 		//printf("seq:%s,temp:%f,d:%d,mfe:%f\n",seq,T,dangleFlag,mfe);
-		//cout<<"point5"<<mfe<<endl;
 	 	pf_scale = exp((-mfe/kT)/n);
-		update_pf_params(n);
-		ensEng = pf_fold(seq, struct1);
+		//update_pf_params(n);
+		ensEng = pf_fold(seq, NULL);
 		bppm = export_bppm();
-		//cout<<"point6"<<endl;
-		//~ for(int i=0;i<n;i++){
-			//~ for(int j=i;j<n;j++){
-				//~ printf	("%.5f\t",bppm[iindx[i+1] - (j+1)  ]);
-				//~ cout<<endl;
-			//~ }
-		//~ }
+
 	}
 	else{
-		//cout<<"cutPoint"<<cutPoint<<endl;
 		cut_point = cutPoint;
-	    //initialize_cofold(string(seq).size());
 	    mfe = cofold(seq,mfeStr);
 	   // printf("seq:%s,temp:%f,d:%d,mfe:%f",seq,T,dangleFlag,mfe);
-	    pf_scale = exp((-mfe/kT)/strlen(seq));
-	    update_co_pf_params(strlen(seq));
-	    cofoldF cof = co_pf_fold(seq,struct1);
-	    printf("cof.F0AB:%d,cofFAB%d cofFcAB%d cofFA:%d\n",cof.F0AB,cof.FAB,cof.FcAB,cof.FA);
+	    pf_scale = exp((-mfe/kT)/n);
+	    cofoldF cof = co_pf_fold(seq,NULL);
+	   // printf("cof.F0AB:%d,cofFAB:%d cofFcAB:%d cofFA:%d\n",cof.F0AB,cof.FAB,cof.FcAB,cof.FA);
 	    ensEng = cof.FAB;
 	    bppm = export_co_bppm();
-	    //~ for(int i=0;i<strlen(seq);i++){
-			//~ for(int j=i;j<strlen(seq);j++){
-				//~ printf	("%.5f\t",bppm[iindx[i+1] - (j+1)  ]);
-				//~ cout<<endl;
-			//~ }
-		//~ }
-	}
-	//cout<<"point 10 "<<endl;	
+
+	}	
 	double **bppr = new double *[n];
 	for(int i = 0; i < n; i++)
 		bppr[i] = new double[n+1];
-	//cout<<"point 11 "<<endl;	
 	for(int i=0;i<n;i++)
 		for(int j=0;j<n+1;j++)
 			bppr[i][j]=0;		
-	//cout<<"point 12 "<<endl;	
 	double pr = 0;
 	for(int i=0;i<n;i++){
 		for(int j=i;j<n;j++){
@@ -109,7 +84,6 @@ double ** BasePairProbabilities(char * seq , int n)
 			bppr[j][i]=bppm[iindx[i+1] - (j+1)  ];
 		}
 	}
-	//cout<<"point 13		 "<<endl;	
 	for(int i=0;i<n;i++){
 		for(int j=0;j<n;j++){
 			pr +=bppr[i][j];

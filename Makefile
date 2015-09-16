@@ -1,5 +1,5 @@
 CXX             = g++
-CXXFLAGS        = -fPIC
+CXXFLAGS        = -fPIC -Iheader
 LDFLAGS        = -L. -lm -lRNA
 
 all: strDiversity

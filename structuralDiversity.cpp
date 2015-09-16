@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string.h>
 #include <algorithm>
+extern "C"{
+#include "read_epars.h"
+}
 #include "misc.h"
 using namespace std;
 
@@ -26,7 +29,7 @@ void usage(char *);
 
 extern double mfe;
 extern char * mfeStr;
-int dangleFlag = 2, t99Flag = 0,cutPoint=-1;
+int dangleFlag = 2, engFlag = 2004,cutPoint=-1;
 double T= 37.;
 double kT = (T + 273.15)*1.98717/1000.; /* kT in kcal/mol */
 
@@ -52,7 +55,7 @@ int main(int argc , char *argv[])
 		" minimum free energy structure is used to calculate these measures\n\n"
 		"\t-q targetSequence: target sequence for computation of ensemble diversity between two sequences\n\n"
 		"\t-t temperature: fold sequences at the given temperature\n\n"
-		"\t-u 99|04 : fold sequnces using Turner99 or Turner2004 energy parameters" 
+		"\t-u turner99|turner04|andronescu07 : energy parameter used to fold the sequences" 
 		"\t-n : normalize measures by length\n\n"
 		"\t-v : verbose mode\n\n"
 		"\t-h : print help\n\n");
@@ -140,10 +143,12 @@ int main(int argc , char *argv[])
 						}
 						break;
 					case 'u':
-						if(argc>i+1 && !strcmp(argv[i+1],"99"))
-							t99Flag = 1;
-						else if (argc>i+1 && !strcmp(argv[i+1],"04"))
-							t99Flag = 0;
+						if(argc>i+1 && !strcmp(argv[i+1],"turner99"))
+							engFlag =  1999;
+						else if (argc>i+1 && !strcmp(argv[i+1],"turner04"))
+							engFlag = 2004;
+						else if(argc>i+1 && !strcmp(argv[i+1],"andronescu07"))
+							engFlag = 2007;
 						else
 						{
 							printf("\nerror in the input Turner flag");
@@ -161,22 +166,40 @@ int main(int argc , char *argv[])
 		cutPoint=found+1;
 		for(int i=found+1;i<strlen(seq);i++)
 			seq[i-1] = seq[i];
-			n = n-1;
+		seq[n-1]='\0';
+		n = n-1;
+		if(targetStrFlag){
+			if(targetStr[found]=='&'){
+				for(int i=found+1;i<strlen(targetStr);i++)
+					targetStr[i-1] = targetStr[i];
+				targetStr[n] = '\0';
+			}
+			else
+			{
+				printf("given sequence and structure are not compatible!\n");
+				usage(argv[0]);
+			}
+		}	
 	}
-	if(targetStrFlag){
-		if(targetStr[found]=='&'){
-			for(int i=found+1;i<n;i++)
-				targetStr[i-1] = targetStr[i];
-		}
-		else
-		{
-			printf("given sequence and structure are not compatible!\n");
-			usage(argv[0]);
-		}
-		printf("targetStr:%s",targetStr);
-	}
+	printf("seq:%s str:%s",seq,targetStr);
 	CheckSequence(seq);
-	printf("seq:%s\n",seq);
+	char * execPath = getExecPath(argv[0]);
+	//printf("energy file path: %s\n",execPath);
+	
+	char turner99[100] = "/energy_params/rna_turner1999.par";
+	char turner04[100] = "/energy_params/rna_turner2004.par";
+	char andronescu07[100] = "/energy_params/rna_andronescu2007.par";
+	
+	if(engFlag==1999)
+		strcat(execPath,turner99);
+	else if (engFlag==2004)
+		strcat(execPath , turner04);
+	else if (engFlag==2007)
+		strcat(execPath , andronescu07);
+	else
+		usage(argv[0]);
+	read_parameter_file(execPath);
+	
 	double ** bpr = BasePairProbabilities(seq,n);
 	/*target structure is given */
 	if(targetStrFlag)
@@ -251,7 +274,7 @@ int main(int argc , char *argv[])
 
 void usage(char * name)
 {
-	printf("\nUSAGE: %s [-s sequence] [-d 0|2] [-c tragetStructure] [-t temperature] [-q tragetSequence] [-u 99|04] [-n] [-v]\ntry %s -h for help\n\n",name, name);
+	printf("\nUSAGE: %s [-s sequence] [-d 0|2] [-c tragetStructure] [-t temperature] [-q tragetSequence] [-u turner99|turner04|andronescu07] [-n] [-v]\ntry %s -h for help\n\n",name, name);
 	exit(1);
 }
 
