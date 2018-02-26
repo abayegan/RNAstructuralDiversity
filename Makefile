@@ -1,10 +1,11 @@
 CXX             = g++
-CXXFLAGS        = -fPIC -Iheader
+#CXXFLAGS        = -fPIC -Iheader
+CXXFLAGS        = -g -Iheader
 LDFLAGS        = -L. -lm -lRNA
 
 all: strDiversity
 
-strDiversity: structuralDiversity.o measures.o misc.o
+strDiversity: measures.o misc.o  structuralDiversity.o
 	${CXX} ${CXXFLAGS} -o strDiversity structuralDiversity.o measures.o misc.o ${LDFLAGS}
 	
 structuralDiversity.o: structuralDiversity.cpp 

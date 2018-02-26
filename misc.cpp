@@ -4,6 +4,9 @@
 #include<math.h>
 #include<iostream>
 #include <ctype.h>
+#include <vector>
+#include <string.h>
+#include <fstream>
 #include"misc.h"
 
 #ifdef _WIN32
@@ -14,6 +17,48 @@
 #endif
 
 using namespace std;
+
+void parseFasta(string fname, vector<string> &seqs, vector<string> &strs){
+	ifstream input(fname.c_str());
+    if(!input.good()){
+        cerr << "Error opening '"<<fname<< endl;
+    }
+    string line, name, content,str;
+    while(getline( input, line ).good() ){
+        if( line.empty() || line[0] == '>' ){
+            if( !name.empty() ){
+                seqs.push_back(content);
+                if (!str.empty())
+					strs.push_back(str);
+				else
+					strs.push_back("MFE");
+                name.clear();
+            }
+            if( !line.empty() ){
+                name = line.substr(1);
+            }
+            content.clear();
+            str.clear();
+        } else if( !name.empty() ){
+            if( line.find(' ') != std::string::npos ){ // Invalid sequence--no spaces allowed
+                name.clear();
+                content.clear();
+            } 
+            else if (line[0]=='(' || line[0]==')' || line[0]=='.' )
+				str += line;
+			else
+                content += line;
+            }
+        }
+    if( !name.empty() ){ // Print out what we read from the last entry
+       seqs.push_back(content);
+       if (!str.empty())
+			strs.push_back(str);
+		else
+			strs.push_back("MFE");
+    }
+	return;
+}
 
 /*The following function check if the input string is a valid RNA sequence*/
 int CheckSequence(char * sequence){     //safe
@@ -39,8 +84,8 @@ char* getExecPath(char* argv0){
 	int path_length=1;
 	FILE* file;
 	#if defined(_WIN32)
-	// GetModuleFileName
-	//_pgmptr
+	/* GetModuleFileName */
+	/* _pgmptr */
 	#elif defined(__APPLE__) || defined(__linux)  || defined(__unix)  || defined(__posix) 
 	char buff[PATH_MAX];
 	int bufsize = PATH_MAX-1;
